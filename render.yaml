@@ -1,0 +1,58 @@
+# Render Blueprint for Part B: auto-build & redeploy on every git push.
+# Docs: https://render.com/docs/blueprint-spec
+databases:
+  - name: todo-db-02240341
+    plan: free
+    databaseName: todo
+    user: todo_user
+
+services:
+  # ---------- Backend ----------
+  - type: web
+    name: be-todo-02240341-bp
+    env: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: DB_HOST
+        fromDatabase:
+          name: todo-db-02240341
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: todo-db-02240341
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: todo-db-02240341
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: todo-db-02240341
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: todo-db-02240341
+          property: database
+
+  # ---------- Frontend ----------
+  - type: web
+    name: fe-todo-02240341-bp
+    env: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    autoDeploy: true
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          type: web
+          name: be-todo-02240341-bp
+          property: host
