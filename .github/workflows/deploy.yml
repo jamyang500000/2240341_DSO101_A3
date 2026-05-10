@@ -1,0 +1,31 @@
+﻿name: Build, Push to DockerHub & Deploy to Render
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout the source code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Login to DockerHub using secrets
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3. Build and push the Docker image
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/todo-app:latest ./backend
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/todo-app:latest
+
+      # 4. Trigger Render deployment via webhook
+      - name: Trigger Render Deployment
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
