@@ -9,7 +9,6 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// PostgreSQL connection pool. SSL is required by Render's managed Postgres.
 const pool = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -21,13 +20,10 @@ const pool = new Pool({
     : false,
 });
 
-// Create the tasks table on first run.
-// NOTE: DROP TABLE is here to fix old schema mismatch — remove after first successful deploy.
 const initDb = async () => {
   try {
-    await pool.query(`DROP TABLE IF EXISTS tasks`);
     await pool.query(`
-      CREATE TABLE tasks (
+      CREATE TABLE IF NOT EXISTS tasks (
         id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
         completed BOOLEAN DEFAULT false,
@@ -40,12 +36,10 @@ const initDb = async () => {
   }
 };
 
-// Health check
 app.get('/', (_req, res) =>
   res.json({ status: 'ok', service: 'be-todo' })
 );
 
-// READ all
 app.get('/api/tasks', async (_req, res) => {
   try {
     const r = await pool.query('SELECT * FROM tasks ORDER BY id DESC');
@@ -55,7 +49,6 @@ app.get('/api/tasks', async (_req, res) => {
   }
 });
 
-// CREATE
 app.post('/api/tasks', async (req, res) => {
   try {
     const { title } = req.body;
@@ -72,7 +65,6 @@ app.post('/api/tasks', async (req, res) => {
   }
 });
 
-// UPDATE (edit title and/or toggle completed)
 app.put('/api/tasks/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -92,7 +84,6 @@ app.put('/api/tasks/:id', async (req, res) => {
   }
 });
 
-// DELETE
 app.delete('/api/tasks/:id', async (req, res) => {
   try {
     const { id } = req.params;

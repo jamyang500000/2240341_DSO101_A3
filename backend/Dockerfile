@@ -1,11 +1,23 @@
-# backend/Dockerfile
-FROM node:18-alpine
+# Use Node.js LTS
+FROM node:20-alpine
+
+# Set working directory
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
-RUN npm install --omit=dev
 
+# Install dependencies
+RUN npm install
+
+# Copy all files
 COPY . .
 
+# Run tests
+RUN npm test
+
+# Expose the app port
 EXPOSE 5000
-CMD ["node", "server.js"]
+
+# Start the app
+CMD ["npm", "start"]
