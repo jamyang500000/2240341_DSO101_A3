@@ -1,4 +1,4 @@
-﻿name: Build, Push to DockerHub & Deploy to Render
+name: Build, Push to DockerHub & Deploy to Render
 
 on:
   push:
